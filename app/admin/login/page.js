@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
-    password: ""
+    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -30,21 +30,17 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Store token in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        
-        // Dispatch custom event to update navbar
-        window.dispatchEvent(new Event('userLoggedIn'));
-        
-        toast.success("Login successful!");
-        router.push("/");
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("isAdmin", "true");
+        window.dispatchEvent(new Event('adminLoggedIn'));
+        toast.success("Admin login successful!");
+        router.push("/admin");
       } else {
-        setError(data.message || "Login failed. Please try again.");
+        setError(data.message || "Invalid credentials");
       }
     } catch (err) {
       setError("Network error. Please try again.");
-      console.error("Login error:", err);
+      console.error("Admin login error:", err);
     } finally {
       setLoading(false);
     }
@@ -53,21 +49,22 @@ export default function LoginPage() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-white rounded-lg shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-            <p className="mt-2 text-gray-600">Sign in to your account</p>
+            <div className="text-6xl mb-4">🔐</div>
+            <h2 className="text-3xl font-bold text-gray-900">Admin Login</h2>
+            <p className="mt-2 text-gray-600">Access admin panel</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
               {error}
             </div>
           )}
@@ -75,7 +72,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+                Admin Email
               </label>
               <input
                 id="email"
@@ -85,13 +82,13 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="[email]"
+                placeholder="admin@example.com"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Admin Password
               </label>
               <input
                 id="password"
@@ -101,25 +98,8 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your password"
+                placeholder="Enter admin password"
               />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-              <a href="#" className="text-sm text-blue-600 hover:text-blue-500">
-                Forgot password?
-              </a>
             </div>
 
             <button
@@ -127,16 +107,19 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-blue-400 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing In..." : "Sign In"}
+              {loading ? "Logging in..." : "Login as Admin"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
-              Don't have an account?{" "}
-              <Link href="/signup" className="text-blue-600 hover:text-blue-500 font-semibold">
-                Sign up
-              </Link>
+            <Link href="/" className="text-blue-600 hover:text-blue-500 font-semibold">
+              ← Back to Home
+            </Link>
+          </div>
+
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Note:</strong> Only authorized administrators can access the admin panel.
             </p>
           </div>
         </div>
